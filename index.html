@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Lumiramahome | Color Master</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;900&family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --neon-blue: #00f3ff;
+            --neon-pink: #ff00ff;
+            --bg-dark: #050505;
+            --card-bg: #15151e;
+        }
+
+        * { box-sizing: border-box; touch-action: manipulation; }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: 
+                linear-gradient(rgba(0, 243, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 243, 255, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            color: #fff;
+            font-family: 'Cairo', sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            padding-bottom: 50px;
+        }
+
+        /* --- Header --- */
+        header {
+            width: 100%;
+            padding: 20px;
+            background: #000;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        .neon-title {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 900;
+            font-size: 1.8rem;
+            color: #fff;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-blue);
+            animation: pulse 3s infinite;
+        }
+
+        @keyframes pulse { 50% { opacity: 0.7; text-shadow: 0 0 5px var(--neon-blue); } }
+
+        /* --- Main Tool --- */
+        .container {
+            width: 95%;
+            max-width: 500px;
+            margin-top: 20px;
+        }
+
+        .editor-box {
+            position: relative;
+            width: 100%;
+            height: 350px;
+            background: #111;
+            border: 2px dashed #444;
+            border-radius: 15px;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: 0.3s;
+        }
+
+        .editor-box.has-image {
+            border: 2px solid var(--neon-blue);
+            background: #000;
+        }
+
+        /* --- Upload Fix --- */
+        .upload-trigger {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 100;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .upload-msg {
+            text-align: center;
+            pointer-events: none;
+        }
+        
+        .icon-cam { font-size: 3rem; margin-bottom: 10px; display: block; }
+
+        #previewImg {
+            max-width: 100%;
+            max-height: 100%;
+            display: none;
+            pointer-events: none;
+        }
+
+        /* --- Picker Tool --- */
+        .picker {
+            position: absolute;
+            width: 40px; height: 40px;
+            border: 3px solid #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #000;
+            transform: translate(-50%, -50%);
+            display: none;
+            z-index: 101;
+            cursor: crosshair;
+        }
+        .picker::after { content: '+'; position: absolute; top:50%; left:50%; transform:translate(-50%, -55%); color:#fff; font-size:20px; }
+
+        /* --- Magnifier --- */
+        .magnifier {
+            position: absolute;
+            top: 10px; left: 10px;
+            width: 90px; height: 90px;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            overflow: hidden;
+            display: none;
+            z-index: 102;
+            background: #000;
+            box-shadow: 0 0 15px #000;
+        }
+
+        /* --- Results --- */
+        .results-area {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            display: none;
+            border: 1px solid #333;
+            text-align: center;
+        }
+
+        .colors-flex {
+            display: flex; justify-content: space-around; align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .color-dot { width: 60px; height: 60px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+        .label { text-align: center; font-size: 0.8rem; color: #aaa; margin-top: 5px; }
+
+        .ral-code { font-size: 2.5rem; font-weight: 900; color: var(--neon-blue); margin: 10px 0; font-family: 'Montserrat'; text-shadow: 0 0 10px rgba(0, 243, 255, 0.3); }
+        .ral-name { color: #fff; font-size: 1.2rem; margin-bottom: 5px; }
+
+        canvas { display: none; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="neon-title">Lumiramahome</div>
+</header>
+
+<div class="container">
+    <div class="editor-box" id="editorBox">
+        <input type="file" id="fileInput" class="upload-trigger" accept="image/*">
+        
+        <div class="upload-msg" id="uploadMsg">
+            <span class="icon-cam">📸</span>
+            <span>اضغط هنا لرفع صورة</span>
+        </div>
+
+        <img id="previewImg">
+        
+        <div class="picker" id="picker"></div>
+        <div class="magnifier" id="magnifier">
+            <canvas id="magCanvas" width="90" height="90"></canvas>
+        </div>
+    </div>
+    
+    <p style="text-align:center; color:#888; font-size:0.9rem; display:none;" id="hint">
+        ☝️ حرك الدائرة باصبعك لاختيار اللون
+    </p>
+
+    <div class="results-area" id="results">
+        <div class="colors-flex">
+            <div>
+                <div class="color-dot" id="userColor"></div>
+                <div class="label">اختيارك</div>
+            </div>
+            <div style="font-size: 20px; color: var(--neon-pink);">➜</div>
+            <div>
+                <div class="color-dot" id="ralColor"></div>
+                <div class="label">RAL المطابق</div>
+            </div>
+        </div>
+
+        <h1 class="ral-code" id="ralCode">RAL ----</h1>
+        <p class="ral-name" id="ralName">Name</p>
+    </div>
+</div>
+
+<canvas id="canvas"></canvas>
+
+<script>
+    // --- قاعدة بيانات RAL الموسعة (بدون تغيير) ---
+    const ralDB = [
+        // Yellows & Beiges
+        {c:"RAL 1000", n:"Green beige", h:"#CCC58F"}, {c:"RAL 1001", n:"Beige", h:"#D1BC8A"}, {c:"RAL 1002", n:"Sand yellow", h:"#D2B773"},
+        {c:"RAL 1003", n:"Signal yellow", h:"#F9A800"}, {c:"RAL 1004", n:"Golden yellow", h:"#E49E00"}, {c:"RAL 1005", n:"Honey yellow", h:"#C49102"},
+        {c:"RAL 1006", n:"Maize yellow", h:"#E4A010"}, {c:"RAL 1007", n:"Daffodil yellow", h:"#E88C00"}, {c:"RAL 1011", n:"Brown beige", h:"#8A6642"},
+        {c:"RAL 1012", n:"Lemon yellow", h:"#C7B446"}, {c:"RAL 1013", n:"Oyster white", h:"#E3D9C6"}, {c:"RAL 1014", n:"Ivory", h:"#DDC49A"},
+        {c:"RAL 1015", n:"Light ivory", h:"#E6D2B5"}, {c:"RAL 1016", n:"Sulfur yellow", h:"#EDFF21"}, {c:"RAL 1017", n:"Saffron yellow", h:"#F5D033"},
+        {c:"RAL 1018", n:"Zinc yellow", h:"#F8F32B"}, {c:"RAL 1019", n:"Grey beige", h:"#9E9764"}, {c:"RAL 1020", n:"Olive yellow", h:"#999955"},
+        {c:"RAL 1021", n:"Rape yellow", h:"#F3DA0B"}, {c:"RAL 1023", n:"Traffic yellow", h:"#FAD201"}, {c:"RAL 1024", n:"Ochre yellow", h:"#BA8F4C"},
+        {c:"RAL 1026", n:"Luminous yellow", h:"#FFFF00"}, {c:"RAL 1027", n:"Curry", h:"#9D9101"}, {c:"RAL 1028", n:"Melon yellow", h:"#FF9B00"},
+        {c:"RAL 1032", n:"Broom yellow", h:"#E2A300"}, {c:"RAL 1033", n:"Dahlia yellow", h:"#F99A1C"}, {c:"RAL 1034", n:"Pastel yellow", h:"#EB9C52"},
+        {c:"RAL 1037", n:"Sun yellow", h:"#F09200"}, 
+        // Oranges
+        {c:"RAL 2000", n:"Yellow orange", h:"#ED760E"}, {c:"RAL 2001", n:"Red orange", h:"#BB4D00"}, {c:"RAL 2002", n:"Vermilion", h:"#C93C20"},
+        {c:"RAL 2003", n:"Pastel orange", h:"#FF7514"}, {c:"RAL 2004", n:"Pure orange", h:"#F44611"}, {c:"RAL 2005", n:"Luminous orange", h:"#FF2301"},
+        {c:"RAL 2008", n:"Bright red orange", h:"#F75E25"}, {c:"RAL 2009", n:"Traffic orange", h:"#E8531F"}, {c:"RAL 2010", n:"Signal orange", h:"#D84B20"},
+        {c:"RAL 2011", n:"Deep orange", h:"#EC7C26"}, {c:"RAL 2012", n:"Salmon orange", h:"#E55137"},
+        // Reds
+        {c:"RAL 3000", n:"Flame red", h:"#AF2B1E"}, {c:"RAL 3001", n:"Signal red", h:"#A52019"}, {c:"RAL 3002", n:"Carmine red", h:"#9B111E"},
+        {c:"RAL 3003", n:"Ruby red", h:"#850E23"}, {c:"RAL 3004", n:"Purple red", h:"#6B1C23"}, {c:"RAL 3005", n:"Wine red", h:"#5E2129"},
+        {c:"RAL 3007", n:"Black red", h:"#412227"}, {c:"RAL 3009", n:"Oxide red", h:"#642424"}, {c:"RAL 3011", n:"Brown red", h:"#781F19"},
+        {c:"RAL 3012", n:"Beige red", h:"#C1876B"}, {c:"RAL 3013", n:"Tomato red", h:"#9C322E"}, {c:"RAL 3014", n:"Antique pink", h:"#D36E70"},
+        {c:"RAL 3015", n:"Light pink", h:"#EA899A"}, {c:"RAL 3016", n:"Coral red", h:"#B32D29"}, {c:"RAL 3017", n:"Rose", h:"#D65464"},
+        {c:"RAL 3018", n:"Strawberry red", h:"#C52B33"}, {c:"RAL 3020", n:"Traffic red", h:"#CC0605"}, {c:"RAL 3022", n:"Salmon pink", h:"#D95030"},
+        {c:"RAL 3024", n:"Luminous red", h:"#F80000"}, {c:"RAL 3026", n:"Luminous bright red", h:"#FE0000"}, {c:"RAL 3027", n:"Raspberry red", h:"#B42041"},
+        {c:"RAL 3031", n:"Orient red", h:"#AC323B"},
+        // Violets & Pinks
+        {c:"RAL 4001", n:"Red lilac", h:"#875982"}, {c:"RAL 4002", n:"Red violet", h:"#933D50"}, {c:"RAL 4003", n:"Heather violet", h:"#D15B8F"},
+        {c:"RAL 4004", n:"Claret violet", h:"#691639"}, {c:"RAL 4005", n:"Blue lilac", h:"#7865CA"}, {c:"RAL 4006", n:"Traffic purple", h:"#992572"},
+        {c:"RAL 4007", n:"Purple violet", h:"#4A192C"}, {c:"RAL 4008", n:"Signal violet", h:"#904E7F"}, {c:"RAL 4009", n:"Pastel violet", h:"#A38995"},
+        {c:"RAL 4010", n:"Telemagenta", h:"#C63678"},
+        // Blues
+        {c:"RAL 5000", n:"Violet blue", h:"#384C70"}, {c:"RAL 5001", n:"Green blue", h:"#1F3438"}, {c:"RAL 5002", n:"Ultramarine", h:"#20214F"},
+        {c:"RAL 5003", n:"Sapphire blue", h:"#1D1E33"}, {c:"RAL 5004", n:"Black blue", h:"#18171C"}, {c:"RAL 5005", n:"Signal blue", h:"#154889"},
+        {c:"RAL 5007", n:"Brilliant blue", h:"#3E5F8A"}, {c:"RAL 5008", n:"Grey blue", h:"#26252D"}, {c:"RAL 5009", n:"Azure blue", h:"#025669"},
+        {c:"RAL 5010", n:"Gentian blue", h:"#0E294B"}, {c:"RAL 5011", n:"Steel blue", h:"#231A24"}, {c:"RAL 5012", n:"Light blue", h:"#3B83BD"},
+        {c:"RAL 5013", n:"Cobalt blue", h:"#1E213D"}, {c:"RAL 5014", n:"Pigeon blue", h:"#606E8C"}, {c:"RAL 5015", n:"Sky blue", h:"#2271B3"},
+        {c:"RAL 5017", n:"Traffic blue", h:"#063971"}, {c:"RAL 5018", n:"Turquoise blue", h:"#3F888F"}, {c:"RAL 5019", n:"Capri blue", h:"#1B5583"},
+        {c:"RAL 5020", n:"Ocean blue", h:"#1D334A"}, {c:"RAL 5021", n:"Water blue", h:"#256D7B"}, {c:"RAL 5022", n:"Night blue", h:"#252850"},
+        {c:"RAL 5023", n:"Distant blue", h:"#49678D"}, {c:"RAL 5024", n:"Pastel blue", h:"#5D9B9B"},
+        // Greens
+        {c:"RAL 6000", n:"Patina green", h:"#316650"}, {c:"RAL 6001", n:"Emerald green", h:"#287233"}, {c:"RAL 6002", n:"Leaf green", h:"#2D572C"},
+        {c:"RAL 6003", n:"Olive green", h:"#424632"}, {c:"RAL 6004", n:"Blue green", h:"#1F3A3D"}, {c:"RAL 6005", n:"Moss green", h:"#2F4538"},
+        {c:"RAL 6009", n:"Fir green", h:"#222D26"}, {c:"RAL 6010", n:"Grass green", h:"#35682D"}, {c:"RAL 6016", n:"Turquoise green", h:"#1E5945"},
+        {c:"RAL 6018", n:"Yellow green", h:"#57A639"}, {c:"RAL 6019", n:"Pastel green", h:"#BDECB6"}, {c:"RAL 6024", n:"Traffic green", h:"#308446"},
+        {c:"RAL 6027", n:"Light green", h:"#84C3BE"}, {c:"RAL 6029", n:"Mint green", h:"#20603D"}, {c:"RAL 6032", n:"Signal green", h:"#317F43"},
+        {c:"RAL 6033", n:"Mint turquoise", h:"#497E76"}, {c:"RAL 6034", n:"Pastel turquoise", h:"#7FB5B5"}, {c:"RAL 6037", n:"Pure green", h:"#008F39"},
+        // Greys
+        {c:"RAL 7000", n:"Squirrel grey", h:"#78858B"}, {c:"RAL 7001", n:"Silver grey", h:"#8A9597"}, {c:"RAL 7004", n:"Signal grey", h:"#969992"},
+        {c:"RAL 7016", n:"Anthracite", h:"#293133"}, {c:"RAL 7021", n:"Black grey", h:"#232C33"}, {c:"RAL 7035", n:"Light grey", h:"#D7D7D7"},
+        {c:"RAL 7040", n:"Window grey", h:"#9DA1AA"},
+        // Browns & Blacks
+        {c:"RAL 8000", n:"Green brown", h:"#826C34"}, {c:"RAL 8017", n:"Chocolate", h:"#45322E"}, {c:"RAL 9005", n:"Jet black", h:"#0A0A0A"},
+        // Whites
+        {c:"RAL 9003", n:"Signal white", h:"#F4F4F4"}, {c:"RAL 9010", n:"Pure white", h:"#FFFFFF"}, {c:"RAL 9016", n:"Traffic white", h:"#F6F6F6"}
+    ];
+
+    // --- Variables ---
+    const fileInput = document.getElementById('fileInput');
+    const editorBox = document.getElementById('editorBox');
+    const previewImg = document.getElementById('previewImg');
+    const picker = document.getElementById('picker');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const magCanvas = document.getElementById('magCanvas');
+    const magCtx = magCanvas.getContext('2d');
+
+    let isDragging = false;
+
+    // --- Upload Logic ---
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                const img = new Image();
+                img.onload = () => {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+
+                    previewImg.src = evt.target.result;
+                    previewImg.style.display = 'block';
+                    editorBox.classList.add('has-image');
+                    
+                    document.getElementById('uploadMsg').style.display = 'none';
+                    fileInput.style.display = 'none';
+                    
+                    document.getElementById('results').style.display = 'block';
+                    document.getElementById('hint').style.display = 'block';
+                    picker.style.display = 'block';
+                    
+                    placePickerAtCenter();
+                }
+                img.src = evt.target.result;
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // --- Drag Logic ---
+    function placePickerAtCenter() {
+        const rect = editorBox.getBoundingClientRect();
+        updateColor(rect.width/2, rect.height/2);
+    }
+
+    editorBox.addEventListener('mousedown', startDrag);
+    editorBox.addEventListener('touchstart', startDrag, {passive: false});
+    window.addEventListener('mousemove', moveDrag);
+    window.addEventListener('touchmove', moveDrag, {passive: false});
+    window.addEventListener('mouseup', endDrag);
+    window.addEventListener('touchend', endDrag);
+
+    function startDrag(e) {
+        if(fileInput.style.display !== 'none') return;
+        isDragging = true;
+        moveDrag(e);
+    }
+
+    function moveDrag(e) {
+        if(!isDragging) return;
+        e.preventDefault();
+
+        const rect = editorBox.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+        let x = clientX - rect.left;
+        let y = clientY - rect.top;
+
+        x = Math.max(0, Math.min(x, rect.width));
+        y = Math.max(0, Math.min(y, rect.height));
+
+        updateColor(x, y);
+    }
+
+    function endDrag() {
+        isDragging = false;
+        document.getElementById('magnifier').style.display = 'none';
+    }
+
+    // --- Processing Logic ---
+    function updateColor(uiX, uiY) {
+        picker.style.left = uiX + 'px';
+        picker.style.top = uiY + 'px';
+
+        const displayedW = previewImg.width;
+        const displayedH = previewImg.height;
+        const naturalW = canvas.width;
+        const naturalH = canvas.height;
+
+        const rect = editorBox.getBoundingClientRect();
+        const offsetX = (rect.width - displayedW) / 2;
+        const offsetY = (rect.height - displayedH) / 2;
+
+        let imgX = (uiX - offsetX) * (naturalW / displayedW);
+        let imgY = (uiY - offsetY) * (naturalH / displayedH);
+
+        if (imgX < 0 || imgX >= naturalW || imgY < 0 || imgY >= naturalH) return;
+
+        const p = ctx.getImageData(imgX, imgY, 1, 1).data;
+        const rgb = {r: p[0], g: p[1], b: p[2]};
+        const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
+
+        document.getElementById('userColor').style.backgroundColor = hex;
+        
+        // Find RAL
+        const match = findClosestRal(rgb);
+        
+        document.getElementById('ralColor').style.backgroundColor = match.h;
+        document.getElementById('ralCode').innerText = match.c;
+        document.getElementById('ralName').innerText = match.n;
+
+        updateMagnifier(imgX, imgY);
+    }
+
+    function updateMagnifier(x, y) {
+        const mag = document.getElementById('magnifier');
+        mag.style.display = 'block';
+        magCtx.imageSmoothingEnabled = false;
+        magCtx.drawImage(canvas, x-5, y-5, 10, 10, 0, 0, 90, 90);
+        
+        magCtx.strokeStyle = 'rgba(255,255,255,0.8)';
+        magCtx.lineWidth = 1;
+        magCtx.beginPath();
+        magCtx.moveTo(45, 0); magCtx.lineTo(45, 90);
+        magCtx.moveTo(0, 45); magCtx.lineTo(90, 45);
+        magCtx.stroke();
+    }
+
+    // --- Math Utils ---
+    function rgbToHex(r,g,b) { return "#" + ((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1).toUpperCase(); }
+    
+    function findClosestRal(rgb) {
+        let minDiff = Infinity;
+        let closest = ralDB[0];
+        const userLab = rgbToLab(rgb);
+
+        for (let i = 0; i < ralDB.length; i++) {
+            const ralRgb = hexToRgb(ralDB[i].h);
+            const ralLab = rgbToLab(ralRgb);
+            
+            const d = Math.sqrt((userLab.l-ralLab.l)**2 + (userLab.a-ralLab.a)**2 + (userLab.b-ralLab.b)**2);
+            
+            if (d < minDiff) {
+                minDiff = d;
+                closest = ralDB[i];
+            }
+        }
+        return closest;
+    }
+
+    function hexToRgb(hex) {
+        const x = parseInt(hex.slice(1), 16);
+        return {r:(x>>16)&255, g:(x>>8)&255, b:x&255};
+    }
+
+    function rgbToLab(rgb) {
+        let r=rgb.r/255, g=rgb.g/255, b=rgb.b/255;
+        r=(r>0.04045)?Math.pow((r+0.055)/1.055,2.4):r/12.92;
+        g=(g>0.04045)?Math.pow((g+0.055)/1.055,2.4):g/12.92;
+        b=(b>0.04045)?Math.pow((b+0.055)/1.055,2.4):b/12.92;
+        let x=(r*0.4124+g*0.3576+b*0.1805)/0.95047;
+        let y=(r*0.2126+g*0.7152+b*0.0722)/1.000;
+        let z=(r*0.0193+g*0.1192+b*0.9505)/1.08883;
+        x=(x>0.008856)?Math.pow(x,1/3):(7.787*x)+16/116;
+        y=(y>0.008856)?Math.pow(y,1/3):(7.787*y)+16/116;
+        z=(z>0.008856)?Math.pow(z,1/3):(7.787*z)+16/116;
+        return {l:(116*y)-16, a:500*(x-y), b:200*(y-z)};
+    }
+</script>
+</body>
+</html>
