@@ -209,15 +209,26 @@
         .dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.5); cursor: pointer; transition: var(--transition); }
         .dot.active { width: 20px; border-radius: 8px; background: var(--primary); }
 
-        /* --- قسم الفئات بملء الاطار وتصغير حجم البطاقات --- */
+        /* --- قسم الفئات بملء الاطار وتصغير حجم البطاقات وتحويله لسلايدر متحرك --- */
         .categories-title { padding: 25px 5% 10px; font-size: 20px; font-weight: 700; color: var(--text-main); max-width: 1200px; margin: 0 auto; width: 100%; text-align: left; }
         html[dir="rtl"] .categories-title { text-align: right; }
-        .categories { padding: 10px 5% 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; max-width: 1200px; margin: 0 auto; width: 100%; }
         
-        @media(max-width: 500px) {
-            .categories { grid-template-columns: repeat(2, 1fr); }
+        .categories-container-scroller { 
+            padding: 10px 5% 20px; 
+            display: flex; 
+            gap: 15px; 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            width: 100%; 
+            overflow-x: auto; 
+            scroll-behavior: smooth;
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
         }
-
+        .categories-container-scroller::-webkit-scrollbar {
+            display: none; /* Chrome, Safari and Opera */
+        }
+        
         .category-card { 
             position: relative; 
             height: 120px; 
@@ -227,6 +238,8 @@
             box-shadow: var(--shadow); 
             cursor: pointer; 
             transition: var(--transition); 
+            flex: 0 0 180px; /* جعل العرض ثابتاً للسلايدر */
+            width: 180px;
         }
         .category-card:hover { transform: translateY(-5px); border-color: var(--primary); }
         
@@ -393,7 +406,7 @@
         .btn { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 14px; font-size: 16px; font-weight:bold; cursor: pointer; transition: var(--transition); box-shadow: 0 6px 15px rgba(192, 130, 70, 0.2);}
         .btn:hover { background: var(--text-main); transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);}
 
-        /* --- الأزرار العائمة المتوازية في نفس السطر --- */
+        /* --- الأزرار العائمة --- */
         .whatsapp-fab { 
             position: fixed; bottom: 100px; left: 20px; width: 56px; height: 56px; border-radius: 50%; 
             background: #25d366; color: white; display: flex; justify-content: center; align-items: center; 
@@ -444,7 +457,6 @@
             justify-content: flex-start;
         }
         
-        /* جعل لوغوات مواقع التواصل الاجتماعي ملونة وثابتة تماماً بدون تأثير Hover لتغيير الألوان */
         .social-icons a.social-btn { 
             font-size: 20px; 
             display: inline-flex;
@@ -455,7 +467,7 @@
             justify-content: center;
             text-decoration: none;
             border: 1.5px solid currentColor; /* إطار ملوّن بثبات ومطابق للأيقونة */
-            transition: none; /* إلغاء أي تأثير انتقال أو تغير لوني */
+            transition: none;
         }
         
         .social-icons a.instagram {
@@ -484,7 +496,7 @@
         /* إطار ذهبي رفيع للغاية للخريطة */
         .map-container { 
             margin-top: 10px; 
-            border: 1px solid var(--primary); /* إطار ذهبي رفيع وجميل */
+            border: 1px solid var(--primary); 
             border-radius: 18px; 
             overflow: hidden; 
             box-shadow: var(--shadow); 
@@ -611,7 +623,8 @@
             </div>
             
             <h2 class="categories-title" data-ar="الفئات" data-fr="Catégories">Catégories</h2>
-            <div class="categories" id="categories-container"></div>
+            <!-- تعديل المعرف إلى سكرولر لتمرير فئات المنتجات بسلاسة تلقائياً -->
+            <div class="categories-container-scroller" id="categories-container"></div>
             
             <div class="products-section">
                 <h2 class="section-title" data-ar="الأكثر مبيعاً" data-fr="Les plus vendus">Les plus vendus</h2>
@@ -671,9 +684,11 @@
                     </ul>
                 </div>
                 <div id="footer-map">
-                    <h3 data-ar="معرضنا في تيغزيرت" data-fr="Notre Showroom à Tigzirt">Notre Showroom à Tigzirt</h3>
+                    <!-- تعديل العنوان إلى ولاية وهران الباهية -->
+                    <h3 data-ar="معرضنا في وهران" data-fr="Notre Showroom à Oran">Notre Showroom à Oran</h3>
                     <div class="map-container">
-                        <iframe id="map-iframe" src="https://maps.google.com/maps?q=Tigzirt,%20Algeria&t=&z=13&ie=UTF8&iwloc=&output=embed" allowfullscreen="" loading="lazy"></iframe>
+                        <!-- تضمين إحداثيات ولاية وهران دقيقة تماماً -->
+                        <iframe id="map-iframe" src="https://maps.google.com/maps?q=Oran,%20Algeria&t=&z=13&ie=UTF8&iwloc=&output=embed" allowfullscreen="" loading="lazy"></iframe>
                     </div>
                 </div>
             </div>
@@ -696,8 +711,7 @@
             </div>
         </div>
 
-        <!-- زر المطرقة العائم على الجهة اليمنى والواتساب على الجهة اليسرى في نفس السطر متوازيان -->
-        <div class="fab fab-custom" id="hammer-fab" onclick="openModal('custom-modal')" title="Fabrication sur mesure" style="position: fixed; bottom: 100px; right: 20px; z-index: 1002;"><i class="fas fa-hammer"></i></div>
+        <!-- تم حذف زر المطرقة العائم تماماً وإبقاء أيقونة الواتساب متوازية ومثبتة بامتياز -->
         <div class="whatsapp-fab" id="whatsapp-fab" onclick="openWhatsapp()" style="position: fixed; bottom: 100px; left: 20px; z-index: 1002;"><i class="fab fa-whatsapp"></i></div>
     </div>
 
@@ -919,7 +933,7 @@
                     <div class="invoice-header">
                         <div>
                             <h1 style="color:var(--primary); font-size:28px; margin-bottom:5px;">LUMIRAMA HOME</h1>
-                            <p>Tigzirt, Showroom</p>
+                            <p>Oran, Showroom</p>
                             <p>Tél: +213 550 00 00 00</p>
                         </div>
                         <div style="text-align:right;">
@@ -1032,11 +1046,12 @@
                 {id:'c3', name_ar:'طاولات', name_fr:'Tables', sub_ar:'فخامة ومتانة للأبد', sub_fr:'Designs modernes', img:'https://images.unsplash.com/photo-1615066390971-03e4e1c36ddf?w=600'}
             ],
             wilayas: [
+                {id: 31, name_ar: 'وهران', name_fr: 'Oran', price_desk: 400, price_home: 800}, /* وهران الولاية الافتراضية الأولى */
                 {id: 16, name_ar: 'الجزائر', name_fr: 'Alger', price_desk: 400, price_home: 800},
                 {id: 15, name_ar: 'تيزي وزو', name_fr: 'Tizi Ouzou', price_desk: 300, price_home: 600},
                 {id: 9, name_ar: 'البليدة', name_fr: 'Blida', price_desk: 500, price_home: 1000}
             ],
-            settings: { whatsapp: "213550000000", about_ar: "معرض لوميراما هوم (Lumirama Home) لبيع أرقى مصابيح الديكور، الثريات، الطاولات والكراسي الرائعة في مدينة تيغزيرت الساحلية.", about_fr: "Showroom Lumirama Home - Luminaires, Lustres, Tables & Chaises à Tigzirt.", priv_ar:"سياسة الخصوصية الخاصة بمتجر لوميراما هوم", priv_fr:"Confidentialité Lumirama Home", ship_ar:"سياسة التوصيل السريع لجميع الولايات والبلديات.", ship_fr:"Politique de livraison Lumirama Home", theme: "#c08246", map:"https://maps.google.com/maps?q=Tigzirt,%20Algeria&t=&z=13&ie=UTF8&iwloc=&output=embed", logo:"", head:"", top_ad:"", pop_ad:"" }
+            settings: { whatsapp: "213550000000", about_ar: "معرض لوميراما هوم (Lumirama Home) لبيع أرقى مصابيح الديكور، الثريات، الطاولات والكراسي الرائعة في ولاية وهران.", about_fr: "Showroom Lumirama Home - Luminaires, Lustres, Tables & Chaises à Oran.", priv_ar:"سياسة الخصوصية الخاصة بمتجر لوميراما هوم", priv_fr:"Confidentialité Lumirama Home", ship_ar:"سياسة التوصيل السريع لجميع الولايات والبلديات.", ship_fr:"Politique de livraison Lumirama Home", theme: "#c08246", map:"https://maps.google.com/maps?q=Oran,%20Algeria&t=&z=13&ie=UTF8&iwloc=&output=embed", logo:"", head:"", top_ad:"", pop_ad:"" }
         };
 
         // Safe Load Database locally
@@ -1212,18 +1227,12 @@
             } else if (hash.startsWith('#product-')) {
                 document.getElementById('frontend-app').style.display = 'block';
                 document.getElementById('product-details-page').style.display = 'block';
-                
-                const hammerBtn = document.getElementById('hammer-fab');
-                if(hammerBtn) hammerBtn.style.display = 'none';
 
                 renderProductDetails(hash.replace('#product-', ''));
                 window.scrollTo({ top: 0, behavior: 'smooth' }); 
             } else {
                 document.getElementById('frontend-app').style.display = 'block';
                 document.getElementById('home-page').style.display = 'block';
-                
-                const hammerBtn = document.getElementById('hammer-fab');
-                if(hammerBtn) hammerBtn.style.display = 'flex';
 
                 const homeNav = document.getElementById('nav-home');
                 if(homeNav) homeNav.classList.add('active');
@@ -1239,6 +1248,32 @@
             const form = document.querySelector('.order-form');
             if (form) form.scrollIntoView({ behavior: 'smooth', block: 'center' });
         };
+
+        // --- سلايدر الفئات التلقائي في سطر واحد ---
+        function startCategoriesAutoplay() {
+            const container = document.getElementById('categories-container');
+            if (!container) return;
+            if (window.categoriesInterval) clearInterval(window.categoriesInterval);
+            
+            window.categoriesInterval = setInterval(() => {
+                const isRtl = document.documentElement.getAttribute('dir') === 'rtl';
+                const scrollAmount = 195; // عرض البطاقة (180) + الفراغ (15)
+                const maxScroll = container.scrollWidth - container.clientWidth;
+                
+                if (isRtl) {
+                    container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+                    // إعادة التعيين من البداية عند الاقتراب من النهاية
+                    if (Math.abs(container.scrollLeft) >= (maxScroll - 10)) {
+                        container.scrollTo({ left: 0, behavior: 'smooth' });
+                    }
+                } else {
+                    container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+                    if (container.scrollLeft >= (maxScroll - 10)) {
+                        container.scrollTo({ left: 0, behavior: 'smooth' });
+                    }
+                }
+            }, 3000);
+        }
 
         // --- Frontend Dynamic Renders ---
         function renderCategories() {
@@ -1256,6 +1291,9 @@
                     </div>
                 </div>
             `).join('');
+            
+            // تشغيل السلايدر التلقائي فور رندرة العناصر
+            setTimeout(startCategoriesAutoplay, 500);
         }
 
         function renderBanners() {
